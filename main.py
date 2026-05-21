@@ -1,4 +1,7 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
+from datetime import datetime
+import os
 
 uri = "mongodb://localhost:27017/"
 client = MongoClient(uri)
@@ -7,49 +10,50 @@ db = client.todo_db
 tasks_collection = db.tasks
 
 
-# Insert Function
-def create_task(description):
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def create_task():
+    title = input("Enter Task Title: ")
+    priority = input("Priority (Low/Medium/High): ")
+    category = input("Category: ")
+    deadline = input("Deadline (DD-MM-YYYY): ")
+
     task = {
-        'task': description
+        'title': title,
+        'priority': priority,
+        'category': category,
+        'deadline': deadline,
+        'status': 'Pending',
+        'created_at': datetime.now().strftime('%d-%m-%Y %H:%M:%S'),
+        'completed': False,
+        'favorite': False
     }
 
     result = tasks_collection.insert_one(task)
-    print(f'Task Created with id {result.inserted_id}')
+    print(f"\nTask Added Successfully : {result.inserted_id}")
 
 
-# View Function
+
 def view_tasks():
-    tasks = tasks_collection.find()
+    tasks = list(tasks_collection.find())
 
-    print("\n--- Tasks ---")
+    if len(tasks) == 0:
+        print("\nNo Tasks Found")
+        return
+
+    print("\n========= TASKS =========")
 
     for task in tasks:
-        print(task)
-
-#Read Function
-def read_tasks():
-    tasks = tasks_collection.find()
-    for docs in tasks:
-        print(f"{docs['task']}")
-
-
-while True:
-    print("\n1. Create Task")
-    print("2. View Task")
-    print("3. Exit")
-
-    choice = input("Enter Your Choice: ")
-
-    if choice == '1':
-        description = input("Enter your Task: ")
-        create_task(description)   
-
-    elif choice == '2':
-        read_tasks()
-
-    elif choice == '3':
-        print("Exiting...")
-        break
-
-    else:
-        print("Provide VALID INPUT")
+        print(f"""
+ID        : {task['_id']}
+Title     : {task['title']}
+Priority  : {task['priority']}
+Category  : {task['category']}
+Deadline  : {task['deadline']}
+Status    : {task['status']}
+Favorite  : {task['favorite']}
+Created   : {task['created_at']}
+""")
+        print("Invalid Choice")
